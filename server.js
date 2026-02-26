@@ -12,6 +12,7 @@ const DocumentChunk = require('./models/DocumentChunk');
 const upload = require('./config/multer');
 const documentController = require('./controllers/documentController');
 const chatController = require('./controllers/chatController');
+const questionController = require('./controllers/questionController');
 
 const app = express();
 connectDB();
@@ -179,6 +180,16 @@ app.delete('/documents/delete/:subjectId/:filename',
 app.post('/api/chat/message', 
   isAuthenticated, 
   chatController.sendMessage
+);
+
+app.post('/api/questions/mcq/:subjectId',
+  isAuthenticated,
+  questionController.generateMCQs
+);
+
+app.post('/api/questions/short/:subjectId',
+  isAuthenticated,
+  questionController.generateShortAnswer
 );
 
 const PORT = process.env.PORT || 3000;
