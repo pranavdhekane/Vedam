@@ -79,7 +79,7 @@ app.post('/login', async (req, res) => {
 
 app.post('/logout', (req, res) => {
   req.session.destroy();
-  res.redirect('/login');
+  res.redirect('/');
 });
 
 app.get('/dashboard', isAuthenticated, async (req, res) => {
