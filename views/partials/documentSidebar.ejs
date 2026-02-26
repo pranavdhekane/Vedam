@@ -1,0 +1,29 @@
+<!-- Document Sidebar Overlay -->
+<div id="doc-overlay"
+     class="fixed inset-0 bg-black/20 backdrop-blur-sm hidden z-40"
+     onclick="closeDocSidebar()">
+</div>
+
+<!-- Slide Panel -->
+<div id="doc-sidebar"
+     class="fixed top-0 right-0 h-full w-80 bg-white shadow-xl border-l border-dorado-200
+            transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
+
+    <!-- Header -->
+    <div class="p-4 border-b border-dorado-200 flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-dorado-800">
+            Uploaded Documents
+        </h2>
+        <button onclick="closeDocSidebar()"
+                class="text-dorado-400 hover:text-dorado-700">
+            ✕
+        </button>
+    </div>
+
+    <!-- File List -->
+    <div id="doc-list"
+         class="flex-1 overflow-y-auto p-4 space-y-3 text-sm text-dorado-700">
+        <!-- Documents will be injected dynamically -->
+    </div>
+
+</div>
