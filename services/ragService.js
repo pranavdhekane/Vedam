@@ -47,9 +47,26 @@ function getConfidence(chunks) {
   return 'Low';
 }
 
-async function answerQuestion(subjectId, userId, question, subjectName) {
+function sanitizeAnswer(text) {
+  if (!text) return '';
+  
+  // Remove Markdown symbols: **, __, _, ~, ` etc.
+  let sanitized = text.replace(/[*_~`]/g, '');
+  
+  // Remove extra line breaks for a single-sentence style
+  sanitized = sanitized.replace(/\n+/g, ' ').trim();
+  
+  return sanitized;
+}
+
+async function answerQuestion(subjectId, userId, conversation, subjectName) {
   try {
-    const relevantChunks = await retrieveRelevantChunks(subjectId, userId, question);
+    // Get last user question for RAG search
+    const lastUserMsg = conversation.slice().reverse().find(msg => msg.role === "user");
+    const lastQuestion = lastUserMsg ? lastUserMsg.text : '';
+
+    // Retrieve relevant chunks from notes
+    const relevantChunks = await retrieveRelevantChunks(subjectId, userId, lastQuestion);
 
     if (relevantChunks.length === 0 || relevantChunks[0].score < 0.15) {
       return {
@@ -62,32 +79,29 @@ async function answerQuestion(subjectId, userId, question, subjectName) {
 
     const confidence = getConfidence(relevantChunks);
 
-    const context = relevantChunks.map((chunk, idx) => 
+    // Build context string
+    const context = relevantChunks.map((chunk, idx) =>
       `Source ${idx + 1} from ${chunk.originalName} section ${chunk.chunkIndex + 1}:\n${chunk.content}`
     ).join('\n\n');
 
-    const prompt = `You are answering questions using only the provided notes.
+    // Build conversation-aware prompt
+    let prompt = `You are an AI tutor. Continue the conversation based on the context below.\n\n`;
 
-Rules:
-1. Only use information from the context below
-2. If the answer is not in the context, say "Not found in your notes for ${subjectName}"
-3. Do not make up information
-4. Cite sources as [Source 1], [Source 2], etc.
-5. Be clear and direct
+    conversation.forEach(msg => {
+      if (msg.role === "user") prompt += `User: ${msg.text}\n`;
+      else if (msg.role === "assistant") prompt += `Assistant: ${msg.text}\n`;
+    });
 
-Context:
-${context}
+    prompt += "\nContext:\n" + (context || "No notes available") + "\n\nAssistant:";
 
-Question: ${question}
-
-Answer:`;
-
+    // Call Gemini API
     const model = genAI.getGenerativeModel({ model: "models/gemini-2.5-flash" });
-    
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const answer = response.text();
+    const rawAnswer = response.text();
+    const answer = sanitizeAnswer(rawAnswer);
 
+    // Build citations and evidence
     const citations = relevantChunks.map(chunk => ({
       filename: chunk.originalName,
       chunkIndex: chunk.chunkIndex + 1,
