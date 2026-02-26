@@ -46,7 +46,7 @@ const isGuest = (req, res, next) => {
   next();
 };
 
-app.get('/', (req, res) => res.redirect('/login'));
+app.get('/', (req, res) => res.render('hero'));
 app.get('/register', isGuest, (req, res) => res.render('auth'));
 app.get('/login', isGuest, (req, res) => res.render('auth'));
 
