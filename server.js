@@ -4,6 +4,7 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const fs = require('fs');
 const connectDB = require('./config/db');
 const User = require('./models/User');
 const Subject = require('./models/Subject');
@@ -119,7 +120,18 @@ app.get('/api/subjects/list', isAuthenticated, async (req, res) => {
 
 app.delete('/api/subjects/:id', isAuthenticated, async (req, res) => {
   try {
-    await Subject.findOneAndDelete({ _id: req.params.id, userId: req.session.userId });
+    const subject = await Subject.findOne({ _id: req.params.id, userId: req.session.userId });
+    if (!subject) return res.status(404).json({ message: 'Subject not found' });
+    
+    // Delete all files associated with the subject
+    subject.notes.forEach(note => {
+      const filePath = path.join(__dirname, note.path);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    });
+    
+    await Subject.findByIdAndDelete(req.params.id);
     res.json({ message: 'Subject deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -166,10 +178,50 @@ app.get('/documents/list/:subjectId', isAuthenticated, async (req, res) => {
     const subject = await Subject.findOne({ _id: req.params.subjectId, userId: req.session.userId });
     if (!subject) return res.status(404).json({ message: 'Subject not found' });
     const files = subject.notes.map(note => ({ 
-      name: note.originalName, 
+      name: note.originalName,
+      filename: note.filename,
       uploadedAt: note.uploadedAt 
     }));
     res.json({ files });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.delete('/documents/delete/:subjectId/:filename', isAuthenticated, async (req, res) => {
+  try {
+    const { subjectId, filename } = req.params;
+    
+    const subject = await Subject.findOne({ _id: subjectId, userId: req.session.userId });
+    if (!subject) return res.status(404).json({ message: 'Subject not found' });
+    
+    // Find the document
+    const docIndex = subject.notes.findIndex(note => note.filename === filename || note.originalName === filename);
+    if (docIndex === -1) return res.status(404).json({ message: 'Document not found' });
+    
+    const doc = subject.notes[docIndex];
+    
+    // Delete file from filesystem
+    const filePath = path.join(__dirname, doc.path);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    
+    // Remove from database
+    subject.notes.splice(docIndex, 1);
+    await subject.save();
+    
+    res.json({ message: 'Document deleted' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Placeholder for chat message endpoint
+app.post('/api/chat/message', isAuthenticated, async (req, res) => {
+  try {
+    // TODO: Implement actual chat functionality with AI
+    res.json({ message: 'This is a placeholder response. Chat functionality will be implemented soon.' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
