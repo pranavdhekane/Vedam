@@ -1,18 +1,10 @@
 <%- include('partials/header', { title: "Dashboard" }) %>
 
 <body class="bg-dorado-50 min-h-screen">
-
+    
+    <%- include('partials/navbar') %>
     <!-- Navbar -->
-    <nav class="bg-white border-b border-dorado-200 px-6 py-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-semibold text-dorado-800">Vedam</h1>
-            <form action="/logout" method="POST">
-                <button type="submit" class="text-sm text-dorado-600 hover:text-dorado-800 underline">
-                    Logout
-                </button>
-            </form>
-        </div>
-    </nav>
+    
 
     <div class="max-w-7xl mx-auto px-6 py-8">
 
@@ -91,7 +83,8 @@
 
     </div>
 
-    <%- include('partials/toast') %>
+    <%- include('partials/toast') %> 
+    <%- include('partials/footer') %> 
 
     <script>
         // Create Subject
