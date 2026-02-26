@@ -1,29 +1,33 @@
-require("dotenv").config();
-
-const express = require("express");
-const path = require("path");
+require('dotenv').config();
+const express = require('express');
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
+const cookieParser = require('cookie-parser');
+const path = require('path');
+const connectDB = require('./config/db');
 
 const app = express();
 
-// use env port or fallback
-const PORT = process.env.PORT || 3000;
+connectDB();
 
-// view engine setup
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(express.static('public'));
 
-// static files
-app.use(express.static(path.join(__dirname, "public")));
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
+  cookie: { maxAge: 604800000, httpOnly: true }
+}));
 
-// routes
-app.get("/", (req, res) => {
-  res.render("login", {
-    title: process.env.APP_NAME || "Home",
-    name: "Pranav"
-  });
-});
+app.use('/', require('./routes/pageRoutes'));
+app.use('/', require('./routes/authRoutes'));
+app.use('/api/subjects', require('./routes/subjectRoutes'));
+app.use('/api/chat', require('./routes/chatRoutes'));
 
-// server
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-}); 
+app.listen(process.env.PORT || 3000, () => console.log('Server running'));
