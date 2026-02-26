@@ -1,0 +1,43 @@
+<nav class="bg-white border-b border-dorado-200 shadow-sm sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="flex justify-between items-center h-16">
+
+            <!-- Logo / Title -->
+            <a href="<%= isLoggedIn ? '/dashboard' : '/' %>"
+               class="text-xl font-bold text-dorado-800 tracking-tight">
+                Vedam
+            </a>
+
+            <!-- Right Section -->
+            <div class="flex items-center gap-6">
+
+                <% if (isLoggedIn) { %>
+
+                    <!-- Dashboard -->
+                    <a href="/dashboard"
+                       class="text-dorado-600 hover:text-dorado-800 transition font-medium">
+                        Dashboard
+                    </a>
+
+                    <!-- Logout -->
+                    <form action="/logout" method="POST">
+                        <button type="submit"
+                                class="px-4 py-2 rounded-lg bg-dorado-700 text-white hover:bg-dorado-800 transition shadow-sm">
+                            Logout
+                        </button>
+                    </form>
+
+                <% } else { %>
+
+                    <!-- Sign Up -->
+                    <a href="/register"
+                       class="px-4 py-2 rounded-lg bg-dorado-700 text-white hover:bg-dorado-800 transition shadow-sm">
+                        Sign Up
+                    </a>
+
+                <% } %>
+
+            </div>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,75 @@
+<footer class="bg-dorado-900 text-dorado-300 mt-20">
+    <div class="max-w-7xl mx-auto px-6 py-12">
+
+        <div class="grid md:grid-cols-3 gap-10">
+
+            <!-- Brand -->
+            <div>
+                <h2 class="text-xl font-semibold text-white mb-4">
+                    Vedam
+                </h2>
+                <p class="text-sm text-dorado-400 leading-relaxed">
+                    AI-powered study companion designed to help you
+                    learn directly from your own subject notes.
+                </p>
+            </div>
+
+            <!-- Navigation -->
+            <div>
+                <h3 class="text-white font-semibold mb-4">
+                    Navigation
+                </h3>
+                <ul class="space-y-2 text-sm">
+                    <li>
+                        <a href="/"
+                           class="hover:text-white transition">
+                            Home
+                        </a>
+                    </li>
+
+                    <% if (isLoggedIn) { %>
+                        <li>
+                            <a href="/dashboard"
+                               class="hover:text-white transition">
+                                Dashboard
+                            </a>
+                        </li>
+                    <% } else { %>
+                        <li>
+                            <a href="/register"
+                               class="hover:text-white transition">
+                                Sign Up
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/login"
+                               class="hover:text-white transition">
+                                Sign In
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </div>
+
+            <!-- Tech -->
+            <div>
+                <h3 class="text-white font-semibold mb-4">
+                    Built With
+                </h3>
+                <p class="text-sm text-dorado-400">
+                    Node.js • Express • MongoDB • EJS • TailwindCSS
+                </p>
+                <p class="text-sm text-dorado-500 mt-3">
+                    Designed for focused, intelligent learning.
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Bottom Line -->
+        <div class="border-t border-dorado-700 mt-10 pt-6 text-center text-sm text-dorado-500">
+            © <%= new Date().getFullYear() %> Vedam. All rights reserved.
+        </div>
+
+    </div>
+</footer>

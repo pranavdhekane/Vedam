@@ -27,6 +27,11 @@ app.use(session({
   cookie: { maxAge: 604800000, httpOnly: true }
 }));
 
+app.use((req, res, next) => {
+  res.locals.isLoggedIn = !!req.session.userId;
+  next();
+});
+
 // Middleware
 const isAuthenticated = (req, res, next) => {
   if (req.session && req.session.userId) return next();
@@ -39,7 +44,7 @@ const isGuest = (req, res, next) => {
 };
 
 // Routes
-app.get('/', (req, res) => res.redirect('/login'));
+app.get('/',  (req, res) => res.render('hero'));
 app.get('/register', isGuest, (req, res) => res.render('auth'));
 app.get('/login', isGuest, (req, res) => res.render('auth'));
 
