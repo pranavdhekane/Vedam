@@ -30,4 +30,11 @@ app.use('/', require('./routes/authRoutes'));
 app.use('/api/subjects', require('./routes/subjectRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 
+app.get("/chat", (req, res) => {
+    res.render("chat", {
+        title: "Chat",
+        username: req.session?.user?.username || "User"
+    });
+});
+
 app.listen(process.env.PORT || 3000, () => console.log('Server running'));
