@@ -36,13 +36,15 @@ function renderMessages() {
 
     messages.forEach((msg) => {
         const isUser = msg.role === "user";
+        const formattedText = msg.text.replace(/\n/g, '<br>');
+        
         chatBox.innerHTML += `
             <div class="max-w-[85%] w-fit mb-4 ${isUser ? 'ml-auto' : 'mr-auto'}">
                 <div class="py-3 px-4 rounded-2xl break-words shadow-sm
                     ${isUser
                         ? 'bg-dorado-200 text-dorado-900 rounded-br-md'
                         : 'bg-white border border-dorado-200 text-dorado-800 rounded-bl-md'}">
-                    ${msg.text}
+                    ${formattedText}
                 </div>
             </div>
         `;
@@ -96,14 +98,15 @@ chatForm.addEventListener("submit", async (e) => {
             chatId: subjectId,
             message: userMsg
         });
+        
         messages[messages.length - 1] = {
             role: "assistant",
-            text: res.data.message || "Response received"
+            text: res.data.message
         };
     } catch (error) {
         messages[messages.length - 1] = {
             role: "assistant",
-            text: "Not found in your notes."
+            text: "Error processing your question"
         };
     } finally {
         localStorage.setItem("vedam_chat_" + subjectId, JSON.stringify(messages));
@@ -175,7 +178,6 @@ async function loadDocuments() {
         });
 
     } catch (err) {
-        console.error('Error loading documents:', err);
         showToast("Failed to load documents", "error");
     }
 }
@@ -190,7 +192,6 @@ async function deleteDocument(filename) {
         showToast("Document deleted", "success");
         loadDocuments();
     } catch (err) {
-        console.error('Error deleting document:', err);
         showToast("Failed to delete document", "error");
     }
 }
@@ -213,12 +214,10 @@ docUpload.addEventListener("change", async () => {
         loadDocuments();
         docUpload.value = "";
     } catch (err) {
-        console.error('Error uploading documents:', err);
         showToast("Upload failed", "error");
     }
 });
 
-// Question Generation Functions
 function showQuestionPanel() {
     document.getElementById("question-panel").classList.remove("hidden");
 }
@@ -229,10 +228,8 @@ function hideQuestionPanel() {
 
 function generateMCQs() {
     showToast("MCQ generation will be implemented soon", "info");
-    // TODO: Implement MCQ generation API call
 }
 
 function generateShortAnswer() {
     showToast("Short answer generation will be implemented soon", "info");
-    // TODO: Implement short answer generation API call
 }

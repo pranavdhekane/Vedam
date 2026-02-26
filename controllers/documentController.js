@@ -1,4 +1,11 @@
 const Subject = require('../models/Subject');
+const DocumentChunk = require('../models/DocumentChunk');
+const path = require('path');
+const { 
+  extractTextFromPDF, 
+  extractTextFromTXT, 
+  chunkText 
+} = require('../services/documentProcessor');
 
 exports.uploadDocuments = async (req, res) => {
   try {
@@ -27,11 +34,64 @@ exports.uploadDocuments = async (req, res) => {
     subject.notes.push(...newFiles);
     await subject.save();
 
-    res.json({ message: 'Files uploaded', files: subject.notes });
+    for (const file of files) {
+      try {
+        await processDocument(
+          file.path,
+          file.filename,
+          file.originalname,
+          subjectId,
+          req.session.userId
+        );
+        console.log(`Successfully processed: ${file.originalname}`);
+      } catch (error) {
+        console.error(`Error processing ${file.originalname}:`, error.message);
+      }
+    }
+
+    res.json({ 
+      message: 'Files uploaded and processed', 
+      files: subject.notes 
+    });
   } catch (error) {
+    console.error('Upload error:', error);
     res.status(500).json({ message: error.message });
   }
 };
+
+async function processDocument(filePath, filename, originalName, subjectId, userId) {
+  const ext = path.extname(originalName).toLowerCase();
+  
+  let text;
+  if (ext === '.pdf') {
+    text = await extractTextFromPDF(filePath);
+  } else if (ext === '.txt') {
+    text = extractTextFromTXT(filePath);
+  } else {
+    throw new Error('Unsupported file type. Only PDF and TXT are supported.');
+  }
+
+  if (!text || text.trim().length === 0) {
+    throw new Error('No text content found in file');
+  }
+
+  const chunks = chunkText(text);
+  
+  console.log(`Creating ${chunks.length} chunks for ${originalName}`);
+
+  for (const chunk of chunks) {
+    if (chunk.content && chunk.content.trim().length > 0) {
+      await DocumentChunk.create({
+        subjectId,
+        userId,
+        filename,
+        originalName,
+        chunkIndex: chunk.chunkIndex,
+        content: chunk.content
+      });
+    }
+  }
+}
 
 exports.getDocuments = async (req, res) => {
   try {
@@ -48,11 +108,57 @@ exports.getDocuments = async (req, res) => {
 
     const files = subject.notes.map(note => ({
       name: note.originalName,
+      filename: note.filename,
       uploadedAt: note.uploadedAt
     }));
 
     res.json({ files });
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteDocument = async (req, res) => {
+  try {
+    const { subjectId, filename } = req.params;
+    
+    const subject = await Subject.findOne({ 
+      _id: subjectId, 
+      userId: req.session.userId 
+    });
+
+    if (!subject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    const docIndex = subject.notes.findIndex(
+      note => note.filename === filename || note.originalName === filename
+    );
+
+    if (docIndex === -1) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+
+    const doc = subject.notes[docIndex];
+
+    const fs = require('fs');
+    const filePath = require('path').join(__dirname, '..', doc.path);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    await DocumentChunk.deleteMany({
+      subjectId,
+      userId: req.session.userId,
+      filename: doc.filename
+    });
+
+    subject.notes.splice(docIndex, 1);
+    await subject.save();
+
+    res.json({ message: 'Document deleted' });
+  } catch (error) {
+    console.error('Delete error:', error);
     res.status(500).json({ message: error.message });
   }
 };
