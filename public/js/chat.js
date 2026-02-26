@@ -3,7 +3,7 @@ const chatInput = document.getElementById("chat-input");
 const chatForm = document.getElementById("chat-form");
 const sendBtn = document.getElementById("sendBtn");
 
-let messages = JSON.parse(localStorage.getItem("vedam_chat")) || [];
+let messages = JSON.parse(localStorage.getItem("AskMyNotes_chat")) || [];
 let isProcessing = false;
 
 /* ---------------- Modal ---------------- */
@@ -67,7 +67,7 @@ function renderMessages() {
 
 function addMessage(role, text) {
     messages.push({ role, text });
-    localStorage.setItem("vedam_chat", JSON.stringify(messages));
+    localStorage.setItem("AskMyNotes_chat", JSON.stringify(messages));
     renderMessages();
 }
 
@@ -76,7 +76,7 @@ function addMessage(role, text) {
 function clearChat() {
     if (confirm("Clear chat history?")) {
         messages = [];
-        localStorage.removeItem("vedam_chat");
+        localStorage.removeItem("AskMyNotes_chat");
         renderMessages();
     }
 }
@@ -127,7 +127,7 @@ chatForm.addEventListener("submit", async (e) => {
             text: "Not found in your notes."
         };
     } finally {
-        localStorage.setItem("vedam_chat", JSON.stringify(messages));
+        localStorage.setItem("AskMyNotes_chat", JSON.stringify(messages));
         renderMessages();
         sendBtn.disabled = false;
         sendBtn.innerText = "➤";
