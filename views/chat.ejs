@@ -1,0 +1,133 @@
+<%- include('partials/header', { title: "Chat" }) %>
+
+<body class="bg-dorado-50 min-h-screen flex flex-col">
+
+    <%- include('partials/navbar') %>
+    <%- include('partials/documentSidebar') %>
+    <div class="flex-1 p-5 md:flex md:justify-center">
+
+        <!-- Chat Messages -->
+        <div id="chat-box" class="md:px-5 w-full md:w-3xl mb-32"></div>
+
+        <!-- Bottom Input Area -->
+        <div class="fixed bottom-0 left-0 w-full bg-white border-t border-dorado-200 z-50 px-5">
+
+            <!-- Info Modal -->
+            <div id="info-modal"
+                 class="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-black/10 z-[9999] hidden p-5">
+
+                <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-dorado-800">
+                            How Vedam Works
+                        </h3>
+                        <button onclick="hideInfoModal()"
+                                class="text-dorado-400 hover:text-dorado-700">
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="space-y-3 text-sm text-dorado-700">
+
+                        <p>
+                            Answers are generated strictly from the selected subject’s uploaded notes.
+                        </p>
+
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Responses include citations</li>
+                            <li>Confidence level is displayed</li>
+                            <li>Evidence snippets are shown</li>
+                            <li>If content is missing → “Not found in your notes”</li>
+                        </ul>
+
+                    </div>
+
+                    <div class="mt-6 text-right">
+                        <button onclick="hideInfoModal()"
+                                class="bg-dorado-600 hover:bg-dorado-700 text-white px-4 py-2 rounded-md">
+                            Got it
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+<!-- Chat Form -->
+<form id="chat-form"
+      class="max-w-3xl mx-auto w-full
+             px-3 sm:px-4 py-3
+             rounded-2xl
+             bg-dorado-800 text-white
+             flex items-end gap-2 sm:gap-3
+             shadow-md">
+
+    <!-- View Documents Button -->
+    <button type="button"
+            onclick="openDocSidebar()"
+            class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10
+                   flex items-center justify-center
+                   text-dorado-300 hover:text-white
+                   transition rounded-md">
+        📂
+    </button>
+
+    <!-- Upload Button -->
+    <label class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10
+                  flex items-center justify-center
+                  cursor-pointer
+                  text-dorado-300 hover:text-white
+                  transition rounded-md">
+        📎
+        <input type="file"
+               id="doc-upload"
+               class="hidden"
+               accept=".pdf,.txt"
+               multiple>
+    </label>
+
+    <!-- Textarea -->
+    <textarea id="chat-input"
+              class="flex-1 min-h-10 max-h-32
+                     px-3 sm:px-4 py-2
+                     bg-transparent
+                     text-white placeholder-dorado-300
+                     focus:outline-none
+                     resize-none overflow-y-auto"
+              placeholder="Ask from your notes..."
+              required
+              rows="1"></textarea>
+
+    <!-- Send Button -->
+    <button type="submit"
+            id="sendBtn"
+            class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10
+                   flex items-center justify-center
+                   hover:text-dorado-300
+                   transition rounded-md"
+            title="Send message">
+        ➤
+    </button>
+
+</form>
+            <!-- Footer Info -->
+            <div class="bg-white text-center text-xs py-3 text-dorado-500">
+                Vedam answers only from your uploaded notes.
+                <button onclick="showInfoModal()" class="underline ml-1">
+                    Learn more
+                </button>
+                |
+                <button onclick="clearChat()" class="underline ml-1">
+                    Clear Chat
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <%- include('partials/toast') %>
+
+    <script src="/js/chat.js"></script>
+
+</body>
+</html>
