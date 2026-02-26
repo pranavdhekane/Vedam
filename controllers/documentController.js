@@ -68,7 +68,7 @@ async function processDocument(filePath, filename, originalName, subjectId, user
   } else if (ext === '.txt') {
     text = extractTextFromTXT(filePath);
   } else {
-    throw new Error('Unsupported file type. Only PDF and TXT are supported.');
+    throw new Error('Unsupported file type');
   }
 
   if (!text || text.trim().length === 0) {
