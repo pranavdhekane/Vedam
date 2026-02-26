@@ -1,0 +1,66 @@
+<%- include("partials/header", { title: "Vedam" }) %>
+<%- include("partials/navbar") %>
+
+<section class="min-h-[85vh] flex items-center bg-gradient-to-b from-dorado-50 to-white px-6">
+
+    <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+
+        <!-- LEFT CONTENT -->
+        <div>
+            <h1 class="text-4xl sm:text-5xl font-bold text-dorado-900 leading-tight mb-6">
+                Your AI Study Companion
+                <span class="text-dorado-600 block">
+                    Built Around Your Notes
+                </span>
+            </h1>
+
+            <p class="text-dorado-600 text-lg mb-8 leading-relaxed">
+                Upload your subject documents. Ask questions. 
+                Get answers grounded in your own study material.
+                Vedam helps you revise smarter, not harder.
+            </p>
+
+            <div class="flex gap-4">
+                <a href="/register"
+                   class="px-6 py-3 rounded-xl bg-dorado-700 text-white font-medium
+                          hover:bg-dorado-800 transition shadow-md">
+                    Get Started
+                </a>
+
+                <a href="/login"
+                   class="px-6 py-3 rounded-xl border border-dorado-300 text-dorado-700
+                          hover:bg-dorado-100 transition">
+                    Sign In
+                </a>
+            </div>
+        </div>
+
+        <!-- RIGHT VISUAL MOCK -->
+        <div class="relative">
+
+            <div class="bg-white rounded-2xl shadow-xl border border-dorado-200 p-6">
+                <div class="mb-4 text-dorado-700 font-semibold">
+                    Cloud Computing
+                </div>
+
+                <div class="bg-dorado-50 rounded-lg p-4 text-sm text-dorado-700 mb-3">
+                    <strong>You:</strong> What is virtualization?
+                </div>
+
+                <div class="bg-dorado-100 rounded-lg p-4 text-sm text-dorado-800">
+                    <strong>Vedam:</strong> Virtualization allows multiple operating 
+                    systems to run on a single physical machine using hypervisors.
+                </div>
+            </div>
+
+            <!-- Floating Badge -->
+            <div class="absolute -top-4 -right-4 bg-dorado-700 text-white px-4 py-2 rounded-xl shadow-md text-sm">
+                AI Powered
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<%- include("partials/footer") %>
