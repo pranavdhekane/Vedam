@@ -13,7 +13,7 @@ router.get('/dashboard', isAuthenticated, async (req, res) => {
 router.get('/chat/:subjectId', isAuthenticated, async (req, res) => {
   const subject = await Subject.findOne({ _id: req.params.subjectId, userId: req.session.userId });
   if (!subject) return res.status(404).send('Not found');
-  res.render('chat', { subject });
+  res.render('chat', { subject, subjectId: req.params.subjectId });
 });
 
 router.get('/study-mode/:subjectId', isAuthenticated, async (req, res) => {

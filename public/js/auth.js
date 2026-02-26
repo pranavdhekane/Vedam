@@ -58,7 +58,8 @@ form.addEventListener("submit", async function (e) {
         submitBtn.disabled = true;
         submitBtn.innerText = "Processing...";
 
-        const url = isSignup ? "/auth/register" : "/auth/login";
+        // FIXED: Changed from /auth/register to /register and /auth/login to /login
+        const url = isSignup ? "/register" : "/login";
 
         const response = await axios.post(url, {
             username,
