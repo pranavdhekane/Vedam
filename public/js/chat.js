@@ -7,6 +7,42 @@ const subjectId = document.body.dataset.subjectId;
 let messages = JSON.parse(localStorage.getItem("AskMyNotes_chat_" + subjectId)) || [];
 let isProcessing = false;
 
+// ========== VOICE VARIABLES ==========
+let isRecording = false;
+let recognition = null;
+let currentUtterance = null;
+
+// Initialize Speech Recognition (browser API - NO BACKEND NEEDED!)
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        chatInput.value = transcript;
+        showToast("Heard: " + transcript, "info");
+        // Auto-send after recognition
+        setTimeout(() => {
+            if (chatInput.value.trim()) {
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        }, 500);
+    };
+    
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        showToast("Could not hear clearly. Try again.", "error");
+        stopVoiceRecording();
+    };
+    
+    recognition.onend = () => {
+        stopVoiceRecording();
+    };
+}
+
 function showInfoModal() {
     document.getElementById("info-modal").classList.remove("hidden");
 }
@@ -73,6 +109,92 @@ function clearChat() {
     }
 }
 
+// ========== VOICE FUNCTIONS (Browser APIs - Simple!) ==========
+function startVoiceRecording() {
+    if (!recognition) {
+        showToast("Voice input not supported in this browser. Use Chrome.", "error");
+        return;
+    }
+    
+    if (isRecording) {
+        stopVoiceRecording();
+        return;
+    }
+    
+    try {
+        recognition.start();
+        isRecording = true;
+        
+        const voiceBtn = document.getElementById("voiceBtn");
+        voiceBtn.innerText = "⏹️";
+        voiceBtn.classList.add("bg-red-500");
+        
+        showToast("Listening... Speak now", "info");
+    } catch (error) {
+        console.error('Error starting recognition:', error);
+        showToast("Could not start voice input", "error");
+    }
+}
+
+function stopVoiceRecording() {
+    if (recognition && isRecording) {
+        try {
+            recognition.stop();
+        } catch (e) {
+            console.error('Error stopping recognition:', e);
+        }
+    }
+    
+    isRecording = false;
+    const voiceBtn = document.getElementById("voiceBtn");
+    voiceBtn.innerText = "🎤";
+    voiceBtn.classList.remove("bg-red-500");
+}
+
+function speakText(text) {
+    // Stop any current speech
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+    }
+    
+    // Clean text for speech (remove formatting, citations, etc.)
+    const cleanText = text
+        .replace(/\n/g, ' ')
+        .replace(/<[^>]*>/g, '')
+        .replace(/\[Source \d+\]/g, '')
+        .replace(/Confidence: \w+/g, '')
+        .replace(/Sources:/g, '')
+        .replace(/Evidence:/g, '');
+    
+    // Create speech utterance
+    currentUtterance = new SpeechSynthesisUtterance(cleanText);
+    currentUtterance.rate = 1.0;
+    currentUtterance.pitch = 1.0;
+    currentUtterance.volume = 1.0;
+    currentUtterance.lang = 'en-US';
+    
+    currentUtterance.onend = () => {
+        currentUtterance = null;
+    };
+    
+    currentUtterance.onerror = (error) => {
+        console.error('Speech synthesis error:', error);
+        currentUtterance = null;
+    };
+    
+    // Speak!
+    window.speechSynthesis.speak(currentUtterance);
+}
+
+function stopSpeaking() {
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        currentUtterance = null;
+        showToast("Speech stopped", "info");
+    }
+}
+
+// ========== CHAT FUNCTIONS ==========
 chatInput.addEventListener("input", () => {
     chatInput.style.height = "auto";
     chatInput.style.height = Math.min(chatInput.scrollHeight, 128) + "px";
@@ -99,10 +221,16 @@ chatForm.addEventListener("submit", async (e) => {
             message: userMsg
         });
         
+        const assistantMsg = res.data.message || "Response received";
+        
         messages[messages.length - 1] = {
             role: "assistant",
-            text: res.data.message
+            text: assistantMsg
         };
+        
+        // ✅ AUTOMATICALLY SPEAK THE ANSWER!
+        speakText(assistantMsg);
+        
     } catch (error) {
         messages[messages.length - 1] = {
             role: "assistant",
@@ -120,6 +248,7 @@ chatForm.addEventListener("submit", async (e) => {
 
 renderMessages();
 
+// ========== DOCUMENT SIDEBAR ==========
 const docSidebar = document.getElementById("doc-sidebar");
 const docOverlay = document.getElementById("doc-overlay");
 const docList = document.getElementById("doc-list");
@@ -226,138 +355,10 @@ function hideQuestionPanel() {
     document.getElementById("question-panel").classList.add("hidden");
 }
 
-async function generateMCQs() {
-    const btn = event.target;
-    btn.disabled = true;
-    btn.innerText = "Generating...";
-
-    console.log('=== Frontend MCQ Generation ===');
-    console.log('Subject ID:', subjectId);
-
-    try {
-        console.log('Calling API...');
-        const res = await axios.post(`/api/questions/mcq/${subjectId}`);
-        
-        console.log('Response received:', res);
-        console.log('Response status:', res.status);
-        console.log('Response data:', res.data);
-        console.log('Questions array:', res.data.questions);
-        
-        if (!res.data.questions) {
-            console.error('ERROR: No questions in response!');
-            showToast("Invalid response from server", "error");
-            return;
-        }
-        
-        displayMCQs(res.data.questions);
-        showToast("MCQs generated successfully", "success");
-    } catch (err) {
-        console.error('=== Frontend MCQ Error ===');
-        console.error('Error object:', err);
-        console.error('Error response:', err.response);
-        console.error('Error message:', err.message);
-        
-        const errorMsg = err.response?.data?.message || err.message || "Failed to generate MCQs";
-        showToast(errorMsg, "error");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Generate";
-    }
+function generateMCQs() {
+    showToast("MCQ generation will be implemented soon", "info");
 }
 
-async function generateShortAnswer() {
-    const btn = event.target;
-    btn.disabled = true;
-    btn.innerText = "Generating...";
-
-    console.log('=== Frontend Short Answer Generation ===');
-    console.log('Subject ID:', subjectId);
-
-    try {
-        console.log('Calling API...');
-        const res = await axios.post(`/api/questions/short/${subjectId}`);
-        
-        console.log('Response received:', res);
-        console.log('Response status:', res.status);
-        console.log('Response data:', res.data);
-        console.log('Questions array:', res.data.questions);
-        
-        if (!res.data.questions) {
-            console.error('ERROR: No questions in response!');
-            showToast("Invalid response from server", "error");
-            return;
-        }
-        
-        displayShortAnswers(res.data.questions);
-        showToast("Questions generated successfully", "success");
-    } catch (err) {
-        console.error('=== Frontend Short Answer Error ===');
-        console.error('Error object:', err);
-        console.error('Error response:', err.response);
-        console.error('Error message:', err.message);
-        
-        const errorMsg = err.response?.data?.message || err.message || "Failed to generate questions";
-        showToast(errorMsg, "error");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Generate";
-    }
-}
-
-function displayMCQs(questions) {
-    console.log('=== Displaying MCQs ===');
-    console.log('Number of questions:', questions.length);
-    
-    const container = document.getElementById("mcq-container");
-    container.innerHTML = "";
-
-    questions.forEach((q, idx) => {
-        console.log(`Question ${idx + 1}:`, q);
-        
-        const div = document.createElement("div");
-        div.className = "mt-4 p-4 bg-white rounded-md border border-dorado-200 text-sm";
-        div.innerHTML = `
-            <p class="font-medium text-dorado-800 mb-3">${idx + 1}. ${q.question}</p>
-            <div class="ml-4 space-y-1 text-dorado-600">
-                ${q.options.map(opt => {
-                    const letter = opt.charAt(0);
-                    const isCorrect = letter === q.correct;
-                    return `<p class="${isCorrect ? 'text-green-600 font-medium' : ''}">${isCorrect ? '✓ ' : ''}${opt}</p>`;
-                }).join('')}
-            </div>
-            <div class="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-800">
-                <strong>Explanation:</strong> ${q.explanation}
-                <br><strong>Citation:</strong> ${q.citation}
-            </div>
-        `;
-        container.appendChild(div);
-    });
-    
-    console.log('MCQs displayed successfully');
-}
-
-function displayShortAnswers(questions) {
-    console.log('=== Displaying Short Answers ===');
-    console.log('Number of questions:', questions.length);
-    
-    const container = document.getElementById("short-container");
-    container.innerHTML = "";
-
-    questions.forEach((q, idx) => {
-        console.log(`Question ${idx + 1}:`, q);
-        
-        const div = document.createElement("div");
-        div.className = "mt-4 p-4 bg-white rounded-md border border-dorado-200 text-sm";
-        div.innerHTML = `
-            <p class="font-medium text-dorado-800 mb-3">${idx + 1}. ${q.question}</p>
-            <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
-                <strong class="text-blue-800">Model Answer:</strong>
-                <p class="text-blue-700 mt-1">${q.answer}</p>
-                <p class="text-blue-800 mt-2"><strong>Citation:</strong> ${q.citation}</p>
-            </div>
-        `;
-        container.appendChild(div);
-    });
-    
-    console.log('Short answers displayed successfully');
+function generateShortAnswer() {
+    showToast("Short answer generation will be implemented soon", "info");
 }
