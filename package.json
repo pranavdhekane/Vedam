@@ -4,6 +4,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "tailwind" : "npx @tailwindcss/cli -i ./public/input.css -o ./public/output.css --watch",
     "dev": "nodemon server.js"
   },
   "dependencies": {
