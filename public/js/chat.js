@@ -4,7 +4,7 @@ const chatForm = document.getElementById("chat-form");
 const sendBtn = document.getElementById("sendBtn");
 const subjectId = document.body.dataset.subjectId;
 
-let messages = JSON.parse(localStorage.getItem("vedam_chat_" + subjectId)) || [];
+let messages = JSON.parse(localStorage.getItem("AskMyNotes_chat")) || [];
 let isProcessing = false;
 
 function showInfoModal() {
@@ -61,14 +61,14 @@ function renderMessages() {
 
 function addMessage(role, text) {
     messages.push({ role, text });
-    localStorage.setItem("vedam_chat_" + subjectId, JSON.stringify(messages));
+    localStorage.setItem("AskMyNotes_chat", JSON.stringify(messages));
     renderMessages();
 }
 
 function clearChat() {
     if (confirm("Clear chat history?")) {
         messages = [];
-        localStorage.removeItem("vedam_chat_" + subjectId);
+        localStorage.removeItem("AskMyNotes_chat");
         renderMessages();
     }
 }
@@ -109,7 +109,7 @@ chatForm.addEventListener("submit", async (e) => {
             text: "Error processing your question"
         };
     } finally {
-        localStorage.setItem("vedam_chat_" + subjectId, JSON.stringify(messages));
+        localStorage.setItem("AskMyNotes_chat", JSON.stringify(messages));
         renderMessages();
         sendBtn.disabled = false;
         sendBtn.innerText = "➤";

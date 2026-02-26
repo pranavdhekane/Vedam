@@ -1,9 +1,9 @@
-# Vedam - AskMyNotes Backend (Original UI Restored)
+# AskMyNotes - AskMyNotes Backend (Original UI Restored)
 
 ## ✅ What's Fixed
 - MongoDB Atlas authentication working
 - All partials properly included
-- Original Vedam UI theme (dorado colors) restored
+- Original AskMyNotes UI theme (dorado colors) restored
 - Subject creation/deletion working
 - File upload system ready
 
@@ -163,7 +163,7 @@ Fields you should see:
 - Check SESSION_SECRET in `.env`
 - Restart server
 
-## 🎨 UI Theme (Original Vedam Colors)
+## 🎨 UI Theme (Original AskMyNotes Colors)
 - Primary: `dorado-600` (golden brown)
 - Background: `dorado-50` (light cream)
 - Text: `dorado-800` (dark brown)
