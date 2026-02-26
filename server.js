@@ -1,4 +1,4 @@
-require("dotenv").config(); // 👈 must be first
+require("dotenv").config();
 
 const express = require("express");
 const path = require("path");
@@ -18,8 +18,8 @@ app.use(express.static(path.join(__dirname, "public")));
 // routes
 app.get("/", (req, res) => {
   res.render("login", {
-    // title: process.env.APP_NAME || "Home",
-    // name: "Pranav"
+    title: process.env.APP_NAME || "Home",
+    name: "Pranav"
   });
 });
 
