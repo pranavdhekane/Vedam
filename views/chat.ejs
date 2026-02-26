@@ -1,18 +1,16 @@
 <%- include('partials/header', { title: "Chat" }) %>
 
-<body class="bg-dorado-50 min-h-screen flex flex-col">
+<body class="bg-dorado-50 min-h-screen flex flex-col" data-subject-id="<%= subjectId %>">
 
     <%- include('partials/navbar') %>
     <%- include('partials/documentSidebar') %>
+    
     <div class="flex-1 p-5 md:flex md:justify-center">
 
-        <!-- Chat Messages -->
         <div id="chat-box" class="md:px-5 w-full md:w-3xl mb-32"></div>
 
-        <!-- Bottom Input Area -->
         <div class="fixed bottom-0 left-0 w-full bg-white border-t border-dorado-200 z-50 px-5">
 
-            <!-- Info Modal -->
             <div id="info-modal"
                  class="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-black/10 z-[9999] hidden p-5">
 
@@ -29,18 +27,15 @@
                     </div>
 
                     <div class="space-y-3 text-sm text-dorado-700">
-
                         <p>
-                            Answers are generated strictly from the selected subject’s uploaded notes.
+                            Answers are generated strictly from the selected subject's uploaded notes.
                         </p>
-
                         <ul class="list-disc pl-5 space-y-1">
                             <li>Responses include citations</li>
                             <li>Confidence level is displayed</li>
                             <li>Evidence snippets are shown</li>
-                            <li>If content is missing → “Not found in your notes”</li>
+                            <li>If content is missing → "Not found in your notes"</li>
                         </ul>
-
                     </div>
 
                     <div class="mt-6 text-right">
@@ -49,10 +44,107 @@
                             Got it
                         </button>
                     </div>
-
                 </div>
             </div>
-<!-- Chat Form -->
+
+            <!-- Question Generation Panel -->
+            <div id="question-panel"
+                 class="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-black/10 z-[9999] hidden p-5">
+
+                <div class="bg-white rounded-xl p-6 max-w-2xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
+
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-dorado-800">
+                            Generate Practice Questions
+                        </h3>
+                        <button onclick="hideQuestionPanel()"
+                                class="text-dorado-400 hover:text-dorado-700 text-2xl">
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        
+                        <!-- MCQ Section -->
+                        <div class="border border-dorado-200 rounded-lg p-4 bg-dorado-50">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-dorado-800 text-lg">Multiple Choice Questions</h4>
+                                    <p class="text-sm text-dorado-600">Generate 5 MCQs with explanations</p>
+                                </div>
+                                <button onclick="generateMCQs()" 
+                                        class="bg-dorado-600 hover:bg-dorado-700 text-white px-4 py-2 rounded-md transition-colors">
+                                    Generate
+                                </button>
+                            </div>
+                            
+                            <!-- Sample MCQ Preview -->
+                            <div class="mt-4 p-4 bg-white rounded-md border border-dorado-200 text-sm">
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="bg-dorado-600 text-white px-2 py-1 rounded text-xs font-medium">Preview</span>
+                                </div>
+                                <p class="font-medium text-dorado-800 mb-3">Sample Question Format:</p>
+                                <p class="text-dorado-700 mb-2">1. What is photosynthesis?</p>
+                                <div class="ml-4 space-y-1 text-dorado-600">
+                                    <p>A) Process of making food</p>
+                                    <p>B) Process of respiration</p>
+                                    <p class="text-green-600 font-medium">✓ C) Process where plants convert light to energy</p>
+                                    <p>D) Process of cell division</p>
+                                </div>
+                                <div class="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-800">
+                                    <strong>Explanation:</strong> Photosynthesis is the process where plants use sunlight to produce glucose from carbon dioxide and water.
+                                    <br><strong>Citation:</strong> Biology Notes, Page 12
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Short Answer Section -->
+                        <div class="border border-dorado-200 rounded-lg p-4 bg-dorado-50">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-dorado-800 text-lg">Short Answer Questions</h4>
+                                    <p class="text-sm text-dorado-600">Generate 3 questions with model answers</p>
+                                </div>
+                                <button onclick="generateShortAnswer()" 
+                                        class="bg-dorado-600 hover:bg-dorado-700 text-white px-4 py-2 rounded-md transition-colors">
+                                    Generate
+                                </button>
+                            </div>
+                            
+                            <!-- Sample Short Answer Preview -->
+                            <div class="mt-4 p-4 bg-white rounded-md border border-dorado-200 text-sm">
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="bg-dorado-600 text-white px-2 py-1 rounded text-xs font-medium">Preview</span>
+                                </div>
+                                <p class="font-medium text-dorado-800 mb-3">Sample Question Format:</p>
+                                <p class="text-dorado-700 mb-2">1. Explain the process of cellular respiration.</p>
+                                <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
+                                    <strong class="text-blue-800">Model Answer:</strong>
+                                    <p class="text-blue-700 mt-1">
+                                        Cellular respiration is the process by which cells break down glucose to produce ATP (energy). 
+                                        It occurs in three stages: glycolysis (cytoplasm), Krebs cycle (mitochondria), and electron transport chain (inner mitochondrial membrane). 
+                                        The overall equation is: C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ATP.
+                                    </p>
+                                    <p class="text-blue-800 mt-2"><strong>Citation:</strong> Biology Chapter 3, Section 2.1</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Box -->
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                            <div class="flex items-start gap-2">
+                                <span class="text-amber-600 text-xl">💡</span>
+                                <div class="text-sm text-amber-800">
+                                    <strong>Note:</strong> All questions and answers are generated from your uploaded notes only. 
+                                    Citations will reference specific pages and sections from your documents.
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
 <form id="chat-form"
       class="max-w-3xl mx-auto w-full
              px-3 sm:px-4 py-3
@@ -61,22 +153,22 @@
              flex items-end gap-2 sm:gap-3
              shadow-md">
 
-    <!-- View Documents Button -->
     <button type="button"
             onclick="openDocSidebar()"
             class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10
                    flex items-center justify-center
                    text-dorado-300 hover:text-white
-                   transition rounded-md">
+                   transition rounded-md"
+            title="View Documents">
         📂
     </button>
 
-    <!-- Upload Button -->
     <label class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10
                   flex items-center justify-center
                   cursor-pointer
                   text-dorado-300 hover:text-white
-                  transition rounded-md">
+                  transition rounded-md"
+           title="Upload Documents">
         📎
         <input type="file"
                id="doc-upload"
@@ -85,7 +177,16 @@
                multiple>
     </label>
 
-    <!-- Textarea -->
+    <button type="button"
+            onclick="showQuestionPanel()"
+            class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10
+                   flex items-center justify-center
+                   text-dorado-300 hover:text-white
+                   transition rounded-md"
+            title="Generate Questions">
+        ❓
+    </button>
+
     <textarea id="chat-input"
               class="flex-1 min-h-10 max-h-32
                      px-3 sm:px-4 py-2
@@ -97,7 +198,6 @@
               required
               rows="1"></textarea>
 
-    <!-- Send Button -->
     <button type="submit"
             id="sendBtn"
             class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10
@@ -107,9 +207,8 @@
             title="Send message">
         ➤
     </button>
-
 </form>
-            <!-- Footer Info -->
+
             <div class="bg-white text-center text-xs py-3 text-dorado-500">
                 Vedam answers only from your uploaded notes.
                 <button onclick="showInfoModal()" class="underline ml-1">
@@ -120,14 +219,10 @@
                     Clear Chat
                 </button>
             </div>
-
         </div>
-
     </div>
 
     <%- include('partials/toast') %>
-
     <script src="/js/chat.js"></script>
-
 </body>
 </html>
