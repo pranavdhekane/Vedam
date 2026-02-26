@@ -4,7 +4,7 @@ const chatForm = document.getElementById("chat-form");
 const sendBtn = document.getElementById("sendBtn");
 const subjectId = document.body.dataset.subjectId;
 
-let messages = JSON.parse(localStorage.getItem("AskMyNotes_chat")) || [];
+let messages = JSON.parse(localStorage.getItem("AskMyNotes_chat_" + subjectId)) || [];
 let isProcessing = false;
 
 // -------------------- Modals --------------------
@@ -111,7 +111,7 @@ function addMessage(role, content = '', extra = {}) {
 function clearChat() {
     if (confirm("Clear chat history?")) {
         messages = [];
-        localStorage.removeItem("AskMyNotes_chat");
+        localStorage.removeItem("AskMyNotes_chat_" + subjectId);
         renderMessages();
     }
 }
@@ -167,7 +167,7 @@ chatForm.addEventListener("submit", async (e) => {
             evidence: []
         };
     } finally {
-        localStorage.setItem("AskMyNotes_chat", JSON.stringify(messages));
+        localStorage.setItem("AskMyNotes_chat_" + subjectId, JSON.stringify(messages));
         renderMessages();
         sendBtn.disabled = false;
         sendBtn.innerText = "➤";
@@ -268,9 +268,142 @@ function toggleSources(idx) {
     el.classList.toggle('hidden');
 }
 
-// -------------------- Question Panel --------------------
-function generateMCQs() { showToast("MCQ generation will be implemented soon", "info"); }
-function generateShortAnswer() { showToast("Short answer generation will be implemented soon", "info"); }
+function hideQuestionPanel() {
+    document.getElementById("question-panel").classList.add("hidden");
+}
 
-// -------------------- Initial Render --------------------
-renderMessages();
+async function generateMCQs() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerText = "Generating...";
+
+    console.log('=== Frontend MCQ Generation ===');
+    console.log('Subject ID:', subjectId);
+
+    try {
+        console.log('Calling API...');
+        const res = await axios.post(`/api/questions/mcq/${subjectId}`);
+        
+        console.log('Response received:', res);
+        console.log('Response status:', res.status);
+        console.log('Response data:', res.data);
+        console.log('Questions array:', res.data.questions);
+        
+        if (!res.data.questions) {
+            console.error('ERROR: No questions in response!');
+            showToast("Invalid response from server", "error");
+            return;
+        }
+        
+        displayMCQs(res.data.questions);
+        showToast("MCQs generated successfully", "success");
+    } catch (err) {
+        console.error('=== Frontend MCQ Error ===');
+        console.error('Error object:', err);
+        console.error('Error response:', err.response);
+        console.error('Error message:', err.message);
+        
+        const errorMsg = err.response?.data?.message || err.message || "Failed to generate MCQs";
+        showToast(errorMsg, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Generate";
+    }
+}
+
+async function generateShortAnswer() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerText = "Generating...";
+
+    console.log('=== Frontend Short Answer Generation ===');
+    console.log('Subject ID:', subjectId);
+
+    try {
+        console.log('Calling API...');
+        const res = await axios.post(`/api/questions/short/${subjectId}`);
+        
+        console.log('Response received:', res);
+        console.log('Response status:', res.status);
+        console.log('Response data:', res.data);
+        console.log('Questions array:', res.data.questions);
+        
+        if (!res.data.questions) {
+            console.error('ERROR: No questions in response!');
+            showToast("Invalid response from server", "error");
+            return;
+        }
+        
+        displayShortAnswers(res.data.questions);
+        showToast("Questions generated successfully", "success");
+    } catch (err) {
+        console.error('=== Frontend Short Answer Error ===');
+        console.error('Error object:', err);
+        console.error('Error response:', err.response);
+        console.error('Error message:', err.message);
+        
+        const errorMsg = err.response?.data?.message || err.message || "Failed to generate questions";
+        showToast(errorMsg, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Generate";
+    }
+}
+
+function displayMCQs(questions) {
+    console.log('=== Displaying MCQs ===');
+    console.log('Number of questions:', questions.length);
+    
+    const container = document.getElementById("mcq-container");
+    container.innerHTML = "";
+
+    questions.forEach((q, idx) => {
+        console.log(`Question ${idx + 1}:`, q);
+        
+        const div = document.createElement("div");
+        div.className = "mt-4 p-4 bg-white rounded-md border border-dorado-200 text-sm";
+        div.innerHTML = `
+            <p class="font-medium text-dorado-800 mb-3">${idx + 1}. ${q.question}</p>
+            <div class="ml-4 space-y-1 text-dorado-600">
+                ${q.options.map(opt => {
+                    const letter = opt.charAt(0);
+                    const isCorrect = letter === q.correct;
+                    return `<p class="${isCorrect ? 'text-green-600 font-medium' : ''}">${isCorrect ? '✓ ' : ''}${opt}</p>`;
+                }).join('')}
+            </div>
+            <div class="mt-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-800">
+                <strong>Explanation:</strong> ${q.explanation}
+                <br><strong>Citation:</strong> ${q.citation}
+            </div>
+        `;
+        container.appendChild(div);
+    });
+    
+    console.log('MCQs displayed successfully');
+}
+
+function displayShortAnswers(questions) {
+    console.log('=== Displaying Short Answers ===');
+    console.log('Number of questions:', questions.length);
+    
+    const container = document.getElementById("short-container");
+    container.innerHTML = "";
+
+    questions.forEach((q, idx) => {
+        console.log(`Question ${idx + 1}:`, q);
+        
+        const div = document.createElement("div");
+        div.className = "mt-4 p-4 bg-white rounded-md border border-dorado-200 text-sm";
+        div.innerHTML = `
+            <p class="font-medium text-dorado-800 mb-3">${idx + 1}. ${q.question}</p>
+            <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
+                <strong class="text-blue-800">Model Answer:</strong>
+                <p class="text-blue-700 mt-1">${q.answer}</p>
+                <p class="text-blue-800 mt-2"><strong>Citation:</strong> ${q.citation}</p>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+    
+    console.log('Short answers displayed successfully');
+}
