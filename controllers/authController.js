@@ -1,7 +1,7 @@
 const User = require('../models/User');
 
-exports.showRegister = (req, res) => res.render('register');
-exports.showLogin = (req, res) => res.render('login');
+exports.showRegister = (req, res) => res.render('auth');
+exports.showLogin = (req, res) => res.render('auth');
 
 exports.register = async (req, res) => {
   try {
